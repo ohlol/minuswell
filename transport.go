@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+type Formatter interface {
+	JsonFormatter() []byte
+	StringFormatter() string
+}
+
 type Transport struct{}
 
 func (t *Transport) JsonFormatter(event Event) []byte {
