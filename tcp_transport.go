@@ -12,7 +12,7 @@ type TcpTransport struct {
 	Transport
 }
 
-func (t *TcpTransport) emit(event Event) {
+func (t *TcpTransport) Emit(event Event) {
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", t.Host, t.Port))
 	if err != nil {
 		log.Printf("Could not send to TCP: %s:%d", t.Host, t.Port)
@@ -20,5 +20,5 @@ func (t *TcpTransport) emit(event Event) {
 	}
 
 	defer conn.Close()
-	fmt.Fprintf(conn, t.JsonFormatter(event))
+	fmt.Fprintf(conn, string(t.JsonFormatter(event)))
 }

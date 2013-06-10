@@ -7,13 +7,13 @@ import (
 
 type Transport struct{}
 
-func (t *Transport) JsonFormatter(event Event) string {
+func (t *Transport) JsonFormatter(event Event) []byte {
 	j, err := json.Marshal(event)
 	if err != nil {
-		return ""
+		return nil
 	}
 
-	return string(j)
+	return j
 }
 
 func (t *Transport) StringFormatter(event Event) string {
