@@ -32,9 +32,9 @@ You must specify both config and output. To send to multiple outputs, simply add
 
 ## Supported outputs
 
-* Standard out (`pipe`) - no configuration needed
-* TCP (`tcp`) - requires specifying `address` and `port`
-* ZeroMQ (`zmq`) - set `addresses` which is an array of ZeroMQ addresses
+* `pipe` (stdout) no configuration needed
+* `tcp` - requires specifying `address` and `port`
+* `zmq` - set `addresses` which is an array of ZeroMQ addresses
 
 ## Configuration
 
