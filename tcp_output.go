@@ -6,13 +6,13 @@ import (
 	"net"
 )
 
-type TcpTransport struct {
-	Host string
-	Port int
-	Transport
+type TcpOutput struct {
+	Host      string
+	Port      int
+	Formatter JsonFormatter
 }
 
-func (t *TcpTransport) Emit(event Event) {
+func (t *TcpOutput) Emit(event Event) {
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", t.Host, t.Port))
 	if err != nil {
 		log.Printf("Could not send to TCP: %s:%d", t.Host, t.Port)
@@ -20,5 +20,5 @@ func (t *TcpTransport) Emit(event Event) {
 	}
 
 	defer conn.Close()
-	fmt.Fprintf(conn, string(t.JsonFormatter(event)))
+	fmt.Fprintf(conn, string(t.Formatter.Format(event)))
 }

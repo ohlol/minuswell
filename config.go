@@ -2,30 +2,30 @@ package main
 
 import (
 	"encoding/json"
-	"os"
+	"io/ioutil"
 )
 
 type Config struct {
-	Transports map[string]map[string]interface{}
-	Files      map[string]map[string]interface{}
+	Outputs map[string]map[string]interface{}
+	Files   map[string]FilesConfig
+}
+
+type FilesConfig struct {
+	Type   string
+	Tags   []string
+	Fields map[string]interface{}
 }
 
 func ReadConfig(filename string) (*Config, error) {
 	var config Config
 
-	file, err := os.Open(filename)
+	file, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	defer file.Close()
-
-	dec := json.NewDecoder(file)
-
-	err = dec.Decode(&config)
-	if err != nil {
+	if err := json.Unmarshal(file, &config); err != nil {
 		return nil, err
 	}
-
 	return &config, nil
 }

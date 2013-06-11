@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"github.com/jessevdk/go-flags"
 	"log"
 	"os"
@@ -10,7 +12,13 @@ import (
 func main() {
 	var (
 		opts struct {
-			Config string `short:"c" description:"path to config file" required:"true"`
+			Config string   `short:"c" description:"path to config file" required:"true"`
+			Output []string `short:"o" description:"which output to use"`
+		}
+		outputsAvailable = map[string]bool{
+			"pipe": true,
+			"tcp":  true,
+			"zmq":  true,
 		}
 	)
 
@@ -25,15 +33,32 @@ func main() {
 		os.Exit(1)
 	}
 
-	t := TcpTransport{Host: config.Transports["tcp"]["address"].(string), Port: int(config.Transports["tcp"]["port"].(float64))}
+	outputs := make([]Output, 0)
+	for _, o := range opts.Output {
+		if _, ok := outputsAvailable[o]; !ok {
+			log.Fatal(errors.New(fmt.Sprintf("Unknown output specified.", o)))
+			os.Exit(1)
+		}
+
+		log.Printf("Setting up %s output\n", o)
+		switch o {
+		case "pipe":
+			outputs = append(outputs, &PipeOutput{})
+		case "tcp":
+			outputs = append(outputs, &TcpOutput{Host: config.Outputs["tcp"]["address"].(string), Port: int(config.Outputs["tcp"]["port"].(float64))})
+		case "zmq":
+			outputs = append(outputs, &ZmqOutput{Addresses: config.Outputs["zmq"]["addresses"].([]interface{})})
+		}
+	}
+
 	fqdn, _ := os.Hostname()
 	ch := make(chan *TailedFileLine)
 	quit := make(chan bool)
 
 	for fp, _ := range config.Files {
-		go func(path string, c chan *TailedFileLine) {
-			WatchDir(path, c)
-		}(fp, ch)
+		go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
+			WatchDir(pth, cfg, c)
+		}(fp, config.Files[fp], ch)
 
 		files, err := filepath.Glob(fp)
 		if err != nil {
@@ -42,15 +67,26 @@ func main() {
 		}
 
 		for _, path := range files {
-			go func(p string, c chan *TailedFileLine) {
-				SetupWatcher(p, c)
-			}(path, ch)
+			go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
+				SetupWatcher(pth, cfg, c)
+			}(path, config.Files[fp], ch)
 		}
 	}
 
 	go func() {
 		for line := range ch {
-			t.emit(Event{SourcePath: line.Filename, Timestamp: line.Line.Time, SourceHost: fqdn, Message: line.Line.Text})
+			for _, t := range outputs {
+				t.Emit(Event{
+					Source:     fmt.Sprintf("file://%s/%s", fqdn, line.Filename),
+					Type:       line.Type,
+					Tags:       line.Tags,
+					Fields:     line.Fields,
+					Timestamp:  line.Line.Time,
+					SourceHost: fqdn,
+					SourcePath: line.Filename,
+					Message:    line.Line.Text,
+				})
+			}
 		}
 	}()
 

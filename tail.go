@@ -9,28 +9,47 @@ import (
 
 type TailedFileLine struct {
 	Filename string
+	Type     string
+	Tags     []string
+	Fields   map[string]interface{}
 	Line     *tail.Line
 }
 
 type TailedFile struct {
 	Path    string
+	Type    string
+	Tags    []string
+	Fields  map[string]interface{}
 	Channel chan *TailedFileLine
 }
 
 func (t *TailedFile) Watch() {
 	tl, _ := tail.TailFile(t.Path, tail.Config{Follow: true, ReOpen: true})
 	log.Printf("Tailing file: %s\n", tl.Filename)
+
 	for line := range tl.Lines {
-		t.Channel <- &TailedFileLine{Filename: tl.Filename, Line: line}
+		t.Channel <- &TailedFileLine{
+			Filename: tl.Filename,
+			Type:     t.Type,
+			Tags:     t.Tags,
+			Fields:   t.Fields,
+			Line:     line,
+		}
 	}
 }
 
-func SetupWatcher(path string, ch chan *TailedFileLine) {
-	tf := TailedFile{Path: path, Channel: ch}
+func SetupWatcher(path string, config FilesConfig, ch chan *TailedFileLine) {
+	tf := TailedFile{
+		Path:    path,
+		Type:    config.Type,
+		Tags:    config.Tags,
+		Fields:  config.Fields,
+		Channel: ch,
+	}
 	tf.Watch()
 }
 
-func WatchDir(path string, ch chan *TailedFileLine) {
+func WatchDir(path string, config FilesConfig, ch chan *TailedFileLine) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -49,7 +68,7 @@ func WatchDir(path string, ch chan *TailedFileLine) {
 		select {
 		case ev := <-watcher.Event:
 			if ev.IsCreate() {
-				SetupWatcher(ev.Name, ch)
+				SetupWatcher(ev.Name, config, ch)
 			}
 		case err := <-watcher.Error:
 			log.Println("error:", err)
