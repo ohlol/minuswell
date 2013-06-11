@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/jessevdk/go-flags"
+	"github.com/ohlol/go-flags"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,9 +12,9 @@ import (
 func main() {
 	var (
 		opts struct {
-			Config    string   `short:"c" description:"path to config file" required:"true"`
-			ConfigDir string   `long:"config-dir" description:"parse config files in dir"`
-			Output    []string `short:"o" description:"which output to use"`
+			Config    string   `short:"c" description:"Path to config file" required:"true" value-name:"FILE"`
+			ConfigDir string   `long:"config-dir" description:"Parse config files in dir" value-name:"DIR"`
+			Output    []string `short:"o" description:"Which output to use (can specify multiple)" value-name:"OUTPUT"`
 		}
 		outputsAvailable = map[string]bool{
 			"pipe": true,
