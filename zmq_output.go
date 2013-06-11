@@ -1,24 +1,34 @@
 package main
 
 import (
-	"fmt"
 	zmq "github.com/alecthomas/gozmq"
+	"log"
 )
 
 type ZmqOutput struct {
 	Addresses []interface{}
 	Formatter JsonFormatter
+	connected bool
+	socket    *zmq.Socket
 }
 
-func (z *ZmqOutput) Emit(event Event) {
+func (z *ZmqOutput) connect() {
 	ctx, _ := zmq.NewContext()
 	socket, _ := ctx.NewSocket(zmq.PUSH)
 	socket.SetSndTimeout(0)
 	for _, addr := range z.Addresses {
-		if err := socket.Connect(addr.(string)); err != nil {
-			fmt.Println(err)
-		}
+		log.Printf("[zmq] Connecting to: %s\n", addr)
+		socket.Connect(addr.(string))
 	}
 
-	socket.Send(z.Formatter.Format(event), 0)
+	z.socket = socket
+	z.connected = true
+}
+
+func (z *ZmqOutput) Emit(event Event) {
+	if !z.connected {
+		z.connect()
+	}
+
+	z.socket.Send(z.Formatter.Format(event), 0)
 }
