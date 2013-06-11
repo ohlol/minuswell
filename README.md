@@ -9,12 +9,10 @@ Minuswell is a log file shipper for Logstash, written in Go. It supports a numbe
 ## Building
 
 ```
-$ for dep in "github.com/jessevdk/go-flags github.com/ActiveState/tail github.com/howeyc/fsnotify github.com/alecthomas/gozmq"
-> do
-> go get $dep
-> done
-$ go build
+$ go get -d -v ./... && go build -v ./...
 ```
+
+If you get errors with gozmq, check [these instructions](https://github.com/alecthomas/gozmq#installing).
 
 The `go build` command creates the `minuswell` binary for you to install/run.
 
