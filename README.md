@@ -26,12 +26,12 @@ Usage:
   minuswell [OPTIONS]
 
 Help Options:
-  -h, --help= Show this help message
+  -h, --help              Show this help message
 
 Application Options:
-  -c=         path to config file
-      --config-dir= parse config files in dir
-  -o=         which output to use
+  -c FILE                 Path to config file
+  -d, --config-dir DIR    Parse config files in dir
+  -o OUTPUT               Which output to use (can specify multiple)
 ```
 
 You must specify both config and output. To send to multiple outputs, simply add more `-o` options to the args.
