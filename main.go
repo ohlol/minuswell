@@ -52,11 +52,9 @@ func main() {
 						}
 					}
 					if ncfg.Files != nil {
-						fmt.Println(config.Files)
 						for k, v := range ncfg.Files {
 							config.Files[k] = v
 						}
-						fmt.Println(config.Files)
 					}
 				}
 			}
