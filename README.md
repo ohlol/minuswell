@@ -1,5 +1,7 @@
 # Minuswell
 
+[![Build Status](https://travis-ci.org/ohlol/minuswell.png)](https://travis-ci.org/ohlol/minuswell)
+
 Minuswell is a log file shipper for Logstash, written in Go. It supports a number of outputs (and can multiplex them).
 
 ## Building
