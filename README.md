@@ -12,6 +12,8 @@ $ go get github.com/alecthomas/gozmq
 $ go build
 ```
 
+The `go build` command creates the `minuswell` binary for you to install/run.
+
 ## Usage
 
 ```
