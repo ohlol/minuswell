@@ -1,4 +1,7 @@
 language: go
+before_install:
+  - apt-get update -qq
+  - apt-get install -qq libzmq3-dev
 install:
   - go get github.com/jessevdk/go-flags
   - go get github.com/ActiveState/tail
