@@ -13,7 +13,7 @@ func main() {
 	var (
 		opts struct {
 			Config    string   `short:"c" description:"Path to config file" required:"true" value-name:"FILE"`
-			ConfigDir string   `long:"config-dir" description:"Parse config files in dir" value-name:"DIR"`
+			ConfigDir string   `short:"d" long:"config-dir" description:"Parse config files in dir" value-name:"DIR"`
 			Output    []string `short:"o" description:"Which output to use (can specify multiple)" value-name:"OUTPUT"`
 		}
 		outputsAvailable = map[string]bool{
