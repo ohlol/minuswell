@@ -1,1 +1,6 @@
 language: go
+install:
+  - go get github.com/jessevdk/go-flags
+  - go get github.com/ActiveState/tail
+  - go get github.com/howeyc/fsnotify
+  - go get -tags zmq_2_1 github.com/alecthomas/gozmq
