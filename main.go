@@ -12,8 +12,9 @@ import (
 func main() {
 	var (
 		opts struct {
-			Config string   `short:"c" description:"path to config file" required:"true"`
-			Output []string `short:"o" description:"which output to use"`
+			Config    string   `short:"c" description:"path to config file" required:"true"`
+			ConfigDir string   `long:"config-dir" description:"parse config files in dir"`
+			Output    []string `short:"o" description:"which output to use"`
 		}
 		outputsAvailable = map[string]bool{
 			"pipe": true,
@@ -31,6 +32,35 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
+	}
+
+	if opts.ConfigDir != "" {
+		cdir, err := os.Open(opts.ConfigDir)
+		if err != nil {
+			log.Printf("Could not read config dir: %s", opts.ConfigDir)
+		} else {
+			configs, _ := cdir.Readdirnames(-1)
+			for _, cfg := range configs {
+				pth := fmt.Sprintf("%s/%s", opts.ConfigDir, cfg)
+				ncfg, err := ReadConfig(pth)
+				if err != nil {
+					log.Printf("Could not parse config file: %s (%s)\n", pth, err)
+				} else {
+					if ncfg.Outputs != nil {
+						for k, v := range ncfg.Outputs {
+							config.Outputs[k] = v
+						}
+					}
+					if ncfg.Files != nil {
+						fmt.Println(config.Files)
+						for k, v := range ncfg.Files {
+							config.Files[k] = v
+						}
+						fmt.Println(config.Files)
+					}
+				}
+			}
+		}
 	}
 
 	outputs := make([]Output, 0)

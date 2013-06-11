@@ -29,10 +29,13 @@ Help Options:
 
 Application Options:
   -c=         path to config file
+      --config-dir= parse config files in dir
   -o=         which output to use
 ```
 
 You must specify both config and output. To send to multiple outputs, simply add more `-o` options to the args.
+
+If you'd like to have minuswell parse multiple config files, it can do that too. Just use `--config-dir=path/to/dir`.
 
 ## Supported outputs
 
