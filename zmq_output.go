@@ -29,5 +29,9 @@ func (z *ZmqOutput) Emit(event Event) {
 		z.connect()
 	}
 
-	z.socket.Send(z.Formatter.Format(event), 0)
+	if event.Formatter != nil {
+		z.socket.Send(event.Formatter(event), 0)
+	} else {
+		z.socket.Send(z.Formatter.Format(event), 0)
+	}
 }

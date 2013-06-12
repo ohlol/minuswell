@@ -34,5 +34,9 @@ func (t *TcpOutput) Emit(event Event) {
 		}
 	}
 
-	fmt.Fprintf(*t.conn, string(t.Formatter.Format(event)))
+	if event.Formatter != nil {
+		fmt.Fprintf(*t.conn, string(event.Formatter(event)))
+	} else {
+		fmt.Fprintf(*t.conn, string(t.Formatter.Format(event)))
+	}
 }
