@@ -105,31 +105,19 @@ func main() {
 		var event Event
 
 		for line := range ch {
-			if line.Formatter != nil {
-				event = Event{
-					Source:     fmt.Sprintf("file://%s/%s", fqdn, line.Filename),
-					Type:       line.Type,
-					Tags:       line.Tags,
-					Fields:     line.Fields,
-					Timestamp:  line.Line.Time,
-					SourceHost: fqdn,
-					SourcePath: line.Filename,
-					Message:    line.Line.Text,
-					Formatter:  line.Formatter,
-				}
-			} else {
-				event = Event{
-					Source:     fmt.Sprintf("file://%s/%s", fqdn, line.Filename),
-					Type:       line.Type,
-					Tags:       line.Tags,
-					Fields:     line.Fields,
-					Timestamp:  line.Line.Time,
-					SourceHost: fqdn,
-					SourcePath: line.Filename,
-					Message:    line.Line.Text,
-				}
+			event = Event{
+				Source:     fmt.Sprintf("file://%s/%s", fqdn, line.Filename),
+				Type:       line.Type,
+				Tags:       line.Tags,
+				Fields:     line.Fields,
+				Timestamp:  line.Line.Time,
+				SourceHost: fqdn,
+				SourcePath: line.Filename,
+				Message:    line.Line.Text,
 			}
-
+			if line.Formatter != nil {
+				event.Formatter = line.Formatter
+			}
 			for _, t := range outputs {
 				t.Emit(event)
 			}

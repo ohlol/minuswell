@@ -65,7 +65,7 @@ func SetupWatcher(path string, config FilesConfig, ch chan *TailedFileLine) {
 			Channel:   ch,
 			Formatter: formatter.Format,
 		}
-	default:
+	case "raw":
 		formatter := RawFormatter{}
 		tf = TailedFile{
 			Path:      path,
@@ -74,6 +74,14 @@ func SetupWatcher(path string, config FilesConfig, ch chan *TailedFileLine) {
 			Fields:    config.Fields,
 			Channel:   ch,
 			Formatter: formatter.Format,
+		}
+	default:
+		tf = TailedFile{
+			Path:    path,
+			Type:    config.Type,
+			Tags:    config.Tags,
+			Fields:  config.Fields,
+			Channel: ch,
 		}
 	}
 
