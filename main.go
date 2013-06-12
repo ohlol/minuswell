@@ -102,9 +102,11 @@ func main() {
 	}
 
 	go func() {
+		var event Event
+
 		for line := range ch {
-			for _, t := range outputs {
-				t.Emit(Event{
+			if line.Formatter != nil {
+				event = Event{
 					Source:     fmt.Sprintf("file://%s/%s", fqdn, line.Filename),
 					Type:       line.Type,
 					Tags:       line.Tags,
@@ -113,7 +115,23 @@ func main() {
 					SourceHost: fqdn,
 					SourcePath: line.Filename,
 					Message:    line.Line.Text,
-				})
+					Formatter:  line.Formatter,
+				}
+			} else {
+				event = Event{
+					Source:     fmt.Sprintf("file://%s/%s", fqdn, line.Filename),
+					Type:       line.Type,
+					Tags:       line.Tags,
+					Fields:     line.Fields,
+					Timestamp:  line.Line.Time,
+					SourceHost: fqdn,
+					SourcePath: line.Filename,
+					Message:    line.Line.Text,
+				}
+			}
+
+			for _, t := range outputs {
+				t.Emit(event)
 			}
 		}
 	}()

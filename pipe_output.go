@@ -5,9 +5,14 @@ import (
 )
 
 type PipeOutput struct {
-	Formatter StringFormatter
+	Host      string
+	Formatter JsonFormatter
 }
 
 func (p *PipeOutput) Emit(event Event) {
-	fmt.Println(string(p.Formatter.Format(event)))
+	if event.Formatter != nil {
+		fmt.Println(string(event.Formatter(event)))
+	} else {
+		fmt.Println(string(p.Formatter.Format(event)))
+	}
 }

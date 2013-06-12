@@ -8,19 +8,21 @@ import (
 )
 
 type TailedFileLine struct {
-	Filename string
-	Type     string
-	Tags     []string
-	Fields   map[string]interface{}
-	Line     *tail.Line
+	Filename  string
+	Type      string
+	Tags      []string
+	Fields    map[string]interface{}
+	Line      *tail.Line
+	Formatter FormatFunc
 }
 
 type TailedFile struct {
-	Path    string
-	Type    string
-	Tags    []string
-	Fields  map[string]interface{}
-	Channel chan *TailedFileLine
+	Path      string
+	Type      string
+	Tags      []string
+	Fields    map[string]interface{}
+	Channel   chan *TailedFileLine
+	Formatter FormatFunc
 }
 
 func (t *TailedFile) Watch() {
@@ -29,23 +31,52 @@ func (t *TailedFile) Watch() {
 
 	for line := range tl.Lines {
 		t.Channel <- &TailedFileLine{
-			Filename: tl.Filename,
-			Type:     t.Type,
-			Tags:     t.Tags,
-			Fields:   t.Fields,
-			Line:     line,
+			Filename:  tl.Filename,
+			Type:      t.Type,
+			Tags:      t.Tags,
+			Fields:    t.Fields,
+			Line:      line,
+			Formatter: t.Formatter,
 		}
 	}
 }
 
 func SetupWatcher(path string, config FilesConfig, ch chan *TailedFileLine) {
-	tf := TailedFile{
-		Path:    path,
-		Type:    config.Type,
-		Tags:    config.Tags,
-		Fields:  config.Fields,
-		Channel: ch,
+	var tf TailedFile
+
+	switch config.Format {
+	case "json":
+		formatter := JsonFormatter{}
+		tf = TailedFile{
+			Path:      path,
+			Type:      config.Type,
+			Tags:      config.Tags,
+			Fields:    config.Fields,
+			Channel:   ch,
+			Formatter: formatter.Format,
+		}
+	case "string":
+		formatter := StringFormatter{}
+		tf = TailedFile{
+			Path:      path,
+			Type:      config.Type,
+			Tags:      config.Tags,
+			Fields:    config.Fields,
+			Channel:   ch,
+			Formatter: formatter.Format,
+		}
+	default:
+		formatter := RawFormatter{}
+		tf = TailedFile{
+			Path:      path,
+			Type:      config.Type,
+			Tags:      config.Tags,
+			Fields:    config.Fields,
+			Channel:   ch,
+			Formatter: formatter.Format,
+		}
 	}
+
 	tf.Watch()
 }
 

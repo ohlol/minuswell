@@ -14,6 +14,7 @@ type FilesConfig struct {
 	Type   string
 	Tags   []string
 	Fields map[string]interface{}
+	Format string
 }
 
 func ReadConfig(filename string) (*Config, error) {

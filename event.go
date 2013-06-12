@@ -13,4 +13,5 @@ type Event struct {
 	SourceHost string                 `json:"@source_host"`
 	SourcePath string                 `json:"@source_path"`
 	Message    string                 `json:"@message"`
+	Formatter  FormatFunc             `json:"-"`
 }
