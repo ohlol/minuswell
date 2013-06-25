@@ -8,6 +8,7 @@ import (
 type ZmqOutput struct {
 	Addresses []interface{}
 	Formatter JsonFormatter
+	Logger    *log.Logger
 	connected bool
 	socket    *zmq.Socket
 }

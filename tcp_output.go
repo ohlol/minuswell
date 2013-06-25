@@ -10,6 +10,7 @@ type TcpOutput struct {
 	Host      string
 	Port      int
 	Formatter JsonFormatter
+	Logger    *log.Logger
 	connected bool
 	conn      *net.Conn
 }

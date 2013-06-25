@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 )
 
 type PipeOutput struct {
 	Host      string
 	Formatter JsonFormatter
+	Logger    *log.Logger
 }
 
 func (p *PipeOutput) Emit(event Event) {

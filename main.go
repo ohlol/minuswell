@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ohlol/go-flags"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -61,6 +62,8 @@ func main() {
 		}
 	}
 
+	stdoutLogger := log.New(io.Writer(os.Stdout), "", log.LstdFlags)
+
 	outputs := make([]Output, 0)
 	for _, o := range opts.Output {
 		if _, ok := outputsAvailable[o]; !ok {
@@ -68,24 +71,25 @@ func main() {
 			os.Exit(1)
 		}
 
-		log.Printf("Setting up %s output\n", o)
+		stdoutLogger.Printf("Setting up %s output\n", o)
+
 		switch o {
 		case "pipe":
-			outputs = append(outputs, &PipeOutput{})
+			outputs = append(outputs, &PipeOutput{Logger: stdoutLogger})
 		case "tcp":
-			outputs = append(outputs, &TcpOutput{Host: config.Outputs["tcp"]["address"].(string), Port: int(config.Outputs["tcp"]["port"].(float64))})
+			outputs = append(outputs, &TcpOutput{Host: config.Outputs["tcp"]["address"].(string), Port: int(config.Outputs["tcp"]["port"].(float64)), Logger: stdoutLogger})
 		case "zmq":
-			outputs = append(outputs, &ZmqOutput{Addresses: config.Outputs["zmq"]["addresses"].([]interface{})})
+			outputs = append(outputs, &ZmqOutput{Addresses: config.Outputs["zmq"]["addresses"].([]interface{}), Logger: stdoutLogger})
 		}
 	}
 
 	fqdn, _ := os.Hostname()
-	ch := make(chan *TailedFileLine)
+	ch := make(chan *TailedFileLine, 4096)
 	quit := make(chan bool)
 
 	for fp, _ := range config.Files {
 		go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
-			WatchDir(pth, cfg, c)
+			WatchDirMask(pth, cfg, stdoutLogger, c)
 		}(fp, config.Files[fp], ch)
 
 		files, err := filepath.Glob(fp)
@@ -96,7 +100,7 @@ func main() {
 
 		for _, path := range files {
 			go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
-				SetupWatcher(pth, cfg, c)
+				SetupWatcher(pth, cfg, stdoutLogger, c)
 			}(path, config.Files[fp], ch)
 		}
 	}
