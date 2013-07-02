@@ -58,7 +58,7 @@ If you'd like to have minuswell parse multiple config files, it can do that too.
         }
     },
     "files": {
-        "/varlog/*.log": {
+        "/var/log/*.log": {
             "type": "syslog",
             "tags": ["system", "logs"],
             "fields": {
