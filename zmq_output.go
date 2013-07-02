@@ -17,7 +17,7 @@ func (z *ZmqOutput) connect() {
 	ctx, _ := zmq.NewContext()
 	socket, _ := ctx.NewSocket(zmq.PUSH)
 	for _, addr := range z.Addresses {
-		log.Printf("[zmq] Connecting to: %s\n", addr)
+		log.Println("[zmq] Connecting to:", addr)
 		socket.Connect(addr.(string))
 	}
 

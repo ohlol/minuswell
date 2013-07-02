@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"github.com/ohlol/go-flags"
 	"io"
@@ -26,19 +25,18 @@ func main() {
 
 	_, err := flags.Parse(&opts)
 	if err != nil {
-		os.Exit(1)
+		log.Fatal("Bad options:", err)
 	}
 
 	config, err := ReadConfig(opts.Config)
 	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
+		log.Fatal("Config parse error:", err)
 	}
 
 	if opts.ConfigDir != "" {
 		cdir, err := os.Open(opts.ConfigDir)
 		if err != nil {
-			log.Printf("Could not read config dir: %s", opts.ConfigDir)
+			log.Println("Could not read config dir:", opts.ConfigDir)
 		} else {
 			configs, _ := cdir.Readdirnames(-1)
 			for _, cfg := range configs {
@@ -67,11 +65,10 @@ func main() {
 	outputs := make([]Output, 0)
 	for _, o := range opts.Output {
 		if _, ok := outputsAvailable[o]; !ok {
-			log.Fatal(errors.New(fmt.Sprintf("Unknown output specified.", o)))
-			os.Exit(1)
+			log.Fatal("Unknown output specified:", o)
 		}
 
-		stdoutLogger.Printf("Setting up %s output\n", o)
+		stdoutLogger.Println("Setting up output:", o)
 
 		switch o {
 		case "pipe":
@@ -93,15 +90,14 @@ func main() {
 		}(fp, config.Files[fp], ch)
 
 		files, err := filepath.Glob(fp)
-		if err != nil {
-			log.Fatal(err)
-			os.Exit(1)
-		}
-
-		for _, path := range files {
-			go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
-				SetupWatcher(pth, cfg, stdoutLogger, c)
-			}(path, config.Files[fp], ch)
+		if err == nil {
+			for _, path := range files {
+				go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
+					SetupWatcher(pth, cfg, stdoutLogger, c)
+				}(path, config.Files[fp], ch)
+			}
+		} else {
+			log.Printf("%s: %s\n", fp, err)
 		}
 	}
 

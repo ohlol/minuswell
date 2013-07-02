@@ -29,7 +29,7 @@ type TailedFile struct {
 
 func (t *TailedFile) Watch() {
 	tl, _ := tail.TailFile(t.Path, tail.Config{Follow: true, ReOpen: true})
-	t.Logger.Printf("Tailing file: %s\n", tl.Filename)
+	t.Logger.Println("Tailing file:", tl.Filename)
 
 	for line := range tl.Lines {
 		select {
@@ -42,7 +42,7 @@ func (t *TailedFile) Watch() {
 			Formatter: t.Formatter,
 		}:
 		default:
-			log.Printf("Buffer full while sending for: %s\n", tl.Filename)
+			log.Println("Buffer full while sending for:", tl.Filename)
 		}
 	}
 }
@@ -82,14 +82,14 @@ func SetupWatcher(path string, config FilesConfig, logger *log.Logger, ch chan *
 func WatchDirMask(path string, config FilesConfig, logger *log.Logger, ch chan *TailedFileLine) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("%s: %s\n", path, err)
 		watcher.Close()
 		return
 	}
 
 	err = watcher.Watch(filepath.Dir(path))
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("%s: %s\n", path, err)
 		watcher.Close()
 		return
 	}
@@ -99,14 +99,14 @@ func WatchDirMask(path string, config FilesConfig, logger *log.Logger, ch chan *
 		case ev := <-watcher.Event:
 			matched, err := regexp.MatchString(path, ev.Name)
 			if err != nil {
-				log.Println("error:", err)
+				log.Printf("%s: %s\n", path, err)
 			} else if matched {
 				if ev.IsCreate() {
 					SetupWatcher(ev.Name, config, logger, ch)
 				} else if ev.IsDelete() {
-					logger.Printf("file deleted: %s\n", ev.Name)
+					logger.Println("file deleted:", ev.Name)
 				} else if ev.IsRename() {
-					logger.Printf("file renamed: %s\n", ev.Name)
+					logger.Println("file renamed:", ev.Name)
 				}
 			}
 		case err := <-watcher.Error:

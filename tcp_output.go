@@ -16,10 +16,10 @@ type TcpOutput struct {
 }
 
 func (t *TcpOutput) connect() error {
-	log.Printf("[tcp] Connecting to: %s:%d", t.Host, t.Port)
+	log.Printf("[tcp] Connecting to: %s:%d\n", t.Host, t.Port)
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", t.Host, t.Port))
 	if err != nil {
-		log.Printf("Could not connect to TCP: %s:%d", t.Host, t.Port)
+		log.Printf("[tcp] Could not connect to: %s:%d\n", t.Host, t.Port)
 		return err
 	}
 
