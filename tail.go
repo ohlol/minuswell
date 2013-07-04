@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/ActiveState/tail"
 	"github.com/howeyc/fsnotify"
+	sn "github.com/ohlol/shoenice"
 	"log"
 	"path/filepath"
 	"regexp"
@@ -25,6 +26,7 @@ type TailedFile struct {
 	Channel   chan *TailedFileLine
 	Formatter FormatFunc
 	Logger    *log.Logger
+	Stats *sn.StatsInstance
 }
 
 func (t *TailedFile) Watch() {
@@ -41,13 +43,15 @@ func (t *TailedFile) Watch() {
 			Line:      line,
 			Formatter: t.Formatter,
 		}:
+			t.Stats.Incr("tailed_lines")
 		default:
 			log.Println("Buffer full while sending for:", tl.Filename)
+			t.Stats.Incr("buffer_full")
 		}
 	}
 }
 
-func SetupWatcher(path string, config FilesConfig, logger *log.Logger, ch chan *TailedFileLine) {
+func SetupWatcher(path string, config FilesConfig, logger *log.Logger, ch chan *TailedFileLine, stats *sn.StatsInstance) {
 	var tf TailedFile
 
 	tf = TailedFile{
@@ -57,6 +61,7 @@ func SetupWatcher(path string, config FilesConfig, logger *log.Logger, ch chan *
 		Fields:  config.Fields,
 		Channel: ch,
 		Logger:  logger,
+		Stats: stats,
 	}
 
 	switch config.Format {
@@ -79,7 +84,7 @@ func SetupWatcher(path string, config FilesConfig, logger *log.Logger, ch chan *
 	tf.Watch()
 }
 
-func WatchDirMask(path string, config FilesConfig, logger *log.Logger, ch chan *TailedFileLine) {
+func WatchDirMask(path string, config FilesConfig, logger *log.Logger, ch chan *TailedFileLine, stats *sn.StatsInstance) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Printf("%s: %s\n", path, err)
@@ -102,7 +107,7 @@ func WatchDirMask(path string, config FilesConfig, logger *log.Logger, ch chan *
 				log.Printf("%s: %s\n", path, err)
 			} else if matched {
 				if ev.IsCreate() {
-					SetupWatcher(ev.Name, config, logger, ch)
+					SetupWatcher(ev.Name, config, logger, ch, stats)
 				} else if ev.IsDelete() {
 					logger.Println("file deleted:", ev.Name)
 				} else if ev.IsRename() {

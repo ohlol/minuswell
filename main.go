@@ -3,11 +3,32 @@ package main
 import (
 	"fmt"
 	"github.com/ohlol/go-flags"
+	sn "github.com/ohlol/shoenice"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+const (
+	GRAPHITE_PORT = 2003
+	STATS_LISTEN_ADDR = "0.0.0.0"
+	STATS_LISTEN_PORT = 5555
+	STATS_PREFIX = "metrics"
+	STATS_UPDATE_INTERVAL = 10
+)
+
+func formatFqdn() string {
+        fqdn, _ := os.Hostname()
+	splitName := strings.Split(fqdn, ".")
+
+        for i, j := 0, len(splitName)-1; i < j; i, j = i+1, j-1 {
+                splitName[i], splitName[j] = splitName[j], splitName[i]
+        }
+
+        return strings.Join(splitName, ".")
+}
 
 func main() {
 	var (
@@ -32,6 +53,28 @@ func main() {
 	if err != nil {
 		log.Fatal("Config parse error:", err)
 	}
+
+	if len(config.GraphiteHost) == 0 {
+		log.Fatal("Did not specify Graphite host in config")
+	}
+	if config.GraphitePort == 0 {
+		config.GraphitePort = 2003
+	}
+	if len(config.StatsListenAddr) == 0 {
+		config.StatsListenAddr = STATS_LISTEN_ADDR
+	}
+	if config.StatsListenPort == 0 {
+		config.StatsListenPort = STATS_LISTEN_PORT
+	}
+	if len(config.StatsPrefix) == 0 {
+		config.StatsPrefix = strings.Join([]string{STATS_PREFIX, formatFqdn()}, ".")
+	}
+	if config.StatsUpdateInterval == 0 {
+		config.StatsUpdateInterval = STATS_UPDATE_INTERVAL
+	}
+
+	stats := sn.NewStatsInstance()
+	stats.RunServer(fmt.Sprintf("%s:%d", config.StatsListenAddr, config.StatsListenPort), config.StatsPrefix, config.StatsUpdateInterval, config.GraphiteHost, config.GraphitePort)
 
 	if opts.ConfigDir != "" {
 		cdir, err := os.Open(opts.ConfigDir)
@@ -85,15 +128,15 @@ func main() {
 	quit := make(chan bool)
 
 	for fp, _ := range config.Files {
-		go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
-			WatchDirMask(pth, cfg, stdoutLogger, c)
-		}(fp, config.Files[fp], ch)
+		go func(pth string, cfg FilesConfig) {
+			WatchDirMask(pth, cfg, stdoutLogger, ch, stats)
+		}(fp, config.Files[fp])
 
 		files, err := filepath.Glob(fp)
 		if err == nil {
 			for _, path := range files {
 				go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
-					SetupWatcher(pth, cfg, stdoutLogger, c)
+					SetupWatcher(pth, cfg, stdoutLogger, c, stats)
 				}(path, config.Files[fp], ch)
 			}
 		} else {

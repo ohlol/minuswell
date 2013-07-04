@@ -6,6 +6,12 @@ import (
 )
 
 type Config struct {
+	StatsListenAddr string
+	StatsListenPort uint16
+	StatsPrefix string
+	StatsUpdateInterval int
+	GraphiteHost string
+	GraphitePort uint16
 	Outputs map[string]map[string]interface{}
 	Files   map[string]FilesConfig
 }
