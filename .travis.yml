@@ -6,6 +6,7 @@ before_install:
   - sudo apt-get install -qq libzmq3-dev
 install:
   - go get github.com/ohlol/go-flags
+  - go get github.com/ohlol/shoenice
   - go get github.com/ActiveState/tail
   - go get github.com/howeyc/fsnotify
   - go get -tags zmq_3_x github.com/alecthomas/gozmq
