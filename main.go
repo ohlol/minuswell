@@ -44,9 +44,8 @@ func main() {
 		}
 	)
 
-	_, err := flags.Parse(&opts)
-	if err != nil {
-		log.Fatal("Bad options:", err)
+	if _, err := flags.Parse(&opts); err != nil {
+		os.Exit(1)
 	}
 
 	config, err := ReadConfig(opts.Config)
