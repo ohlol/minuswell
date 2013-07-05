@@ -38,6 +38,8 @@ You must specify both config and output. To send to multiple outputs, simply add
 
 If you'd like to have minuswell parse multiple config files, it can do that too. Just use `--config-dir=path/to/dir`.
 
+It uses the [shoenice](https://github.com/ohlol/shoenice) library to provide statistics about the app and send them to Graphite.
+
 ## Supported outputs
 
 * `pipe` (stdout) no configuration needed
@@ -48,6 +50,7 @@ If you'd like to have minuswell parse multiple config files, it can do that too.
 
 ```
 {
+    "graphiteHost": "graphite.foo.com",
     "outputs": {
         "tcp": {
             "address": "127.0.0.1",
