@@ -25,5 +25,5 @@ func (r *RawFormatter) Format(event Event) []byte {
 }
 
 func (s *StringFormatter) Format(event Event) []byte {
-	return []byte(fmt.Sprintf("[%s] [%s] %s", event.SourceHost, event.Timestamp, event.Message))
+	return []byte(fmt.Sprintf("[%s] [%s] %s", event.Host, event.Timestamp, event.Message))
 }

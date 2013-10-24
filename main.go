@@ -148,13 +148,12 @@ func main() {
 
 		for line := range ch {
 			event = Event{
-				Source:     fmt.Sprintf("file://%s/%s", fqdn, line.Filename),
 				Type:       line.Type,
 				Tags:       line.Tags,
 				Fields:     line.Fields,
 				Timestamp:  line.Line.Time,
-				SourceHost: fqdn,
-				SourcePath: line.Filename,
+				Host: fqdn,
+				Path: line.Filename,
 				Message:    line.Line.Text,
 			}
 			if line.Formatter != nil {
