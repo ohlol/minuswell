@@ -26,7 +26,7 @@ type TailedFile struct {
 	Channel   chan *TailedFileLine
 	Formatter FormatFunc
 	Logger    *log.Logger
-	Stats *sn.StatsInstance
+	Stats     *sn.StatsInstance
 }
 
 func (t *TailedFile) Watch() {
@@ -61,7 +61,7 @@ func SetupWatcher(path string, config FilesConfig, logger *log.Logger, ch chan *
 		Fields:  config.Fields,
 		Channel: ch,
 		Logger:  logger,
-		Stats: stats,
+		Stats:   stats,
 	}
 
 	switch config.Format {

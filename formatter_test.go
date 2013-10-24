@@ -12,13 +12,13 @@ func TestJsonFormatter(t *testing.T) {
 	flds["fld1"] = 1
 
 	e := Event{
-		Type:       "test-event",
-		Tags:       []string{"tag1", "tag2"},
-		Fields:     flds,
-		Timestamp:  time.Now(),
-		Host: "localhost",
-		Path: "/path/here.log",
-		Message:    "hello world",
+		Type:      "test-event",
+		Tags:      []string{"tag1", "tag2"},
+		Fields:    flds,
+		Timestamp: time.Now(),
+		Host:      "localhost",
+		Path:      "/path/here.log",
+		Message:   "hello world",
 	}
 	enc, err := json.Marshal(e)
 	if err != nil {
@@ -33,9 +33,9 @@ func TestJsonFormatter(t *testing.T) {
 
 func TestStringFormatter(t *testing.T) {
 	e := Event{
-		Timestamp:  time.Now(),
-		Host: "localhost",
-		Message:    "hello world",
+		Timestamp: time.Now(),
+		Host:      "localhost",
+		Message:   "hello world",
 	}
 	expectedString := fmt.Sprintf("[%s] [%s] %s", e.Host, e.Timestamp, e.Message)
 

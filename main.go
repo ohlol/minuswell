@@ -12,22 +12,22 @@ import (
 )
 
 const (
-	GRAPHITE_PORT = 2003
-	STATS_LISTEN_ADDR = "0.0.0.0"
-	STATS_LISTEN_PORT = 5555
-	STATS_PREFIX = "metrics"
+	GRAPHITE_PORT         = 2003
+	STATS_LISTEN_ADDR     = "0.0.0.0"
+	STATS_LISTEN_PORT     = 5555
+	STATS_PREFIX          = "metrics"
 	STATS_UPDATE_INTERVAL = 10
 )
 
 func formatFqdn() string {
-        fqdn, _ := os.Hostname()
+	fqdn, _ := os.Hostname()
 	splitName := strings.Split(fqdn, ".")
 
-        for i, j := 0, len(splitName)-1; i < j; i, j = i+1, j-1 {
-                splitName[i], splitName[j] = splitName[j], splitName[i]
-        }
+	for i, j := 0, len(splitName)-1; i < j; i, j = i+1, j-1 {
+		splitName[i], splitName[j] = splitName[j], splitName[i]
+	}
 
-        return strings.Join(splitName, ".")
+	return strings.Join(splitName, ".")
 }
 
 func main() {
@@ -148,13 +148,13 @@ func main() {
 
 		for line := range ch {
 			event = Event{
-				Type:       line.Type,
-				Tags:       line.Tags,
-				Fields:     line.Fields,
-				Timestamp:  line.Line.Time,
-				Host: fqdn,
-				Path: line.Filename,
-				Message:    line.Line.Text,
+				Type:      line.Type,
+				Tags:      line.Tags,
+				Fields:    line.Fields,
+				Timestamp: line.Line.Time,
+				Host:      fqdn,
+				Path:      line.Filename,
+				Message:   line.Line.Text,
 			}
 			if line.Formatter != nil {
 				event.Formatter = line.Formatter
