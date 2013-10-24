@@ -17,6 +17,7 @@ const (
 	STATS_LISTEN_PORT     = 5555
 	STATS_PREFIX          = "metrics"
 	STATS_UPDATE_INTERVAL = 10
+	TAIL_BUF_SZ           = 4096
 )
 
 func formatFqdn() string {
@@ -36,6 +37,7 @@ func main() {
 			Config    string   `short:"c" description:"Path to config file" required:"true" value-name:"FILE"`
 			ConfigDir string   `short:"d" long:"config-dir" description:"Parse config files in dir" value-name:"DIR"`
 			Output    []string `short:"o" description:"Which output to use (can specify multiple)" value-name:"OUTPUT"`
+			TailBufSz int32    `short:"z" description:"Size of tail buffer in lines" value-name:"LINES"`
 		}
 		outputsAvailable = map[string]bool{
 			"pipe": true,
@@ -102,6 +104,10 @@ func main() {
 		}
 	}
 
+	if opts.TailBufSz == 0 {
+		opts.TailBufSz = TAIL_BUF_SZ
+	}
+
 	stdoutLogger := log.New(io.Writer(os.Stdout), "", log.LstdFlags)
 
 	outputs := make([]Output, 0)
@@ -123,7 +129,7 @@ func main() {
 	}
 
 	fqdn, _ := os.Hostname()
-	ch := make(chan *TailedFileLine, 4096)
+	ch := make(chan *TailedFileLine, opts.TailBufSz)
 	quit := make(chan bool)
 
 	for fp, _ := range config.Files {
