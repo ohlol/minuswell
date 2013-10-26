@@ -5,6 +5,7 @@ import (
 	"github.com/howeyc/fsnotify"
 	sn "github.com/ohlol/shoenice"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 )
@@ -30,7 +31,7 @@ type TailedFile struct {
 }
 
 func (t *TailedFile) Watch() {
-	tl, _ := tail.TailFile(t.Path, tail.Config{Follow: true, ReOpen: true})
+	tl, _ := tail.TailFile(t.Path, tail.Config{Follow: true, ReOpen: true, Location: &tail.SeekInfo{0, os.SEEK_END}})
 	t.Logger.Println("Tailing file:", tl.Filename)
 
 	for line := range tl.Lines {
