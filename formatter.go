@@ -16,7 +16,24 @@ type RawFormatter struct{}
 type StringFormatter struct{}
 
 func (j *JsonFormatter) Format(event Event) []byte {
-	ret, _ := json.Marshal(event)
+	jsonEvent := make(map[string]interface{})
+	jsonEvent["@timestamp"] = event.Timestamp
+	jsonEvent["fqdn"] = event.Host
+	jsonEvent["path"] = event.Path
+	jsonEvent["message"] = event.Message
+
+	if event.Type != "" {
+		jsonEvent["type"] = event.Type
+	}
+	if len(event.Tags) > 0 {
+		jsonEvent["tags"] = event.Tags
+	}
+
+	for fn, fv := range event.Fields {
+		jsonEvent[fn] = fv
+	}
+
+	ret, _ := json.Marshal(jsonEvent)
 	return ret
 }
 
