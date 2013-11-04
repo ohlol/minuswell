@@ -31,7 +31,7 @@ type TailedFile struct {
 }
 
 func (t *TailedFile) Watch() {
-	tl, _ := tail.TailFile(t.Path, tail.Config{Follow: true, ReOpen: true, Location: &tail.SeekInfo{0, os.SEEK_END}})
+	tl, _ := tail.TailFile(t.Path, tail.Config{Follow: true, Location: &tail.SeekInfo{0, os.SEEK_END}, Poll: true})
 	t.Logger.Println("Tailing file:", tl.Filename)
 
 	for line := range tl.Lines {
@@ -88,16 +88,16 @@ func SetupWatcher(path string, config FilesConfig, logger *log.Logger, ch chan *
 func WatchDirMask(path string, config FilesConfig, logger *log.Logger, ch chan *TailedFileLine, stats *sn.StatsInstance) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Printf("%s: %s\n", path, err)
+		logger.Printf("%s: %s\n", path, err)
 		watcher.Close()
-		return
 	}
+
+	logger.Printf("Watching directory: %s\n", filepath.Dir(path))
 
 	err = watcher.Watch(filepath.Dir(path))
 	if err != nil {
-		log.Printf("%s: %s\n", path, err)
+		logger.Printf("%s: %s\n", path, err)
 		watcher.Close()
-		return
 	}
 
 	for {
@@ -109,19 +109,15 @@ func WatchDirMask(path string, config FilesConfig, logger *log.Logger, ch chan *
 			} else if matched {
 				if ev.IsCreate() {
 					SetupWatcher(ev.Name, config, logger, ch, stats)
-				} else if ev.IsDelete() {
-					logger.Println("file deleted:", ev.Name)
-				} else if ev.IsRename() {
-					logger.Println("file renamed:", ev.Name)
 				}
 			}
 		case err := <-watcher.Error:
-			log.Println("error:", err)
-			watcher.Close()
-			return
+			if err != nil {
+				log.Println("error:", err)
+				watcher.Close()
+			}
 		}
 	}
 
 	watcher.Close()
-	return
 }
