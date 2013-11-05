@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"unicode"
 )
 
 type Formatter interface {
@@ -20,7 +22,7 @@ func (j *JsonFormatter) Format(event Event) []byte {
 	jsonEvent["@timestamp"] = event.Timestamp
 	jsonEvent["fqdn"] = event.Host
 	jsonEvent["path"] = event.Path
-	jsonEvent["message"] = event.Message
+	jsonEvent["message"] = strings.TrimRightFunc(event.Message, unicode.IsSpace)
 
 	if event.Type != "" {
 		jsonEvent["type"] = event.Type
@@ -42,5 +44,5 @@ func (r *RawFormatter) Format(event Event) []byte {
 }
 
 func (s *StringFormatter) Format(event Event) []byte {
-	return []byte(fmt.Sprintf("[%s] [%s] %s", event.Host, event.Timestamp, event.Message))
+	return []byte(fmt.Sprintf("[%s] [%s] %s", event.Host, event.Timestamp, strings.TrimRightFunc(event.Message, unicode.IsSpace)))
 }
