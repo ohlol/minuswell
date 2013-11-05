@@ -27,7 +27,7 @@ type TcpOutput struct {
 const (
 	defaultTimeout  = 30
 	initialWaitTime = 5
-	maxWaitTime = 60
+	maxWaitTime     = 60
 )
 
 func (tc *tcpConnection) getConn() {
