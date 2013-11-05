@@ -18,6 +18,8 @@ const (
 	STATS_PREFIX          = "metrics"
 	STATS_UPDATE_INTERVAL = 10
 	TAIL_BUF_SZ           = 4096
+	IS_FILE               = 0x1
+	IS_DIRECTORY          = 0x2
 )
 
 func formatFqdn() string {
@@ -29,6 +31,31 @@ func formatFqdn() string {
 	}
 
 	return strings.Join(splitName, ".")
+}
+
+// http://stackoverflow.com/questions/8824571/golang-determining-whether-file-points-to-file-or-directory
+func fileOrDirectory(path string) int {
+	f, err := os.Open(path)
+
+	if err != nil {
+		return -1
+	}
+
+	defer f.Close()
+
+	fi, err := f.Stat()
+	if err != nil {
+		return -1
+	}
+
+	switch mode := fi.Mode(); {
+	case mode.IsDir():
+		return IS_DIRECTORY
+	case mode.IsRegular():
+		return IS_FILE
+	}
+
+	return -1
 }
 
 func main() {
@@ -133,19 +160,26 @@ func main() {
 	quit := make(chan bool)
 
 	for fp, _ := range config.Files {
-		go func(pth string, cfg FilesConfig) {
-			WatchDirMask(pth, cfg, stdoutLogger, ch, stats)
-		}(fp, config.Files[fp])
-
-		files, err := filepath.Glob(fp)
-		if err == nil {
-			for _, path := range files {
-				go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
-					SetupWatcher(pth, cfg, stdoutLogger, c, stats)
-				}(path, config.Files[fp], ch)
+		switch fileOrDirectory(fp) {
+		case IS_FILE:
+			go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
+				SetupWatcher(pth, cfg, stdoutLogger, c, stats)
+			}(fp, config.Files[fp], ch)
+		case IS_DIRECTORY:
+			go func(pth string, cfg FilesConfig) {
+				WatchDirMask(pth, cfg, stdoutLogger, ch, stats)
+			}(fp, config.Files[fp])
+		case -1:
+			files, err := filepath.Glob(fp)
+			if err == nil {
+				for _, path := range files {
+					go func(pth string, cfg FilesConfig, c chan *TailedFileLine) {
+						SetupWatcher(pth, cfg, stdoutLogger, c, stats)
+					}(path, config.Files[fp], ch)
+				}
+			} else {
+				log.Printf("%s: %s\n", fp, err)
 			}
-		} else {
-			log.Printf("%s: %s\n", fp, err)
 		}
 	}
 
