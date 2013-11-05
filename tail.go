@@ -103,12 +103,14 @@ func WatchDirMask(path string, config FilesConfig, logger *log.Logger, ch chan *
 	for {
 		select {
 		case ev := <-watcher.Event:
-			matched, err := regexp.MatchString(path, ev.Name)
-			if err != nil {
-				log.Printf("%s: %s\n", path, err)
-			} else if matched {
-				if ev.IsCreate() {
-					SetupWatcher(ev.Name, config, logger, ch, stats)
+			if ev != nil {
+				matched, err := regexp.MatchString(path, ev.Name)
+				if err != nil {
+					log.Printf("%s: %s\n", path, err)
+				} else if matched {
+					if ev.IsCreate() {
+						SetupWatcher(ev.Name, config, logger, ch, stats)
+					}
 				}
 			}
 		case err := <-watcher.Error:
